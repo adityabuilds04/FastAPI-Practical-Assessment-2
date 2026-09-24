@@ -1,47 +1,59 @@
 
-from pydantic import BaseModel, Field, field_validator
-from models import ItemStatus
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+from models import EventStatus
 
 
-class ItemCreate(BaseModel):
+# -----------------------------
+# EVENT CREATE
+# -----------------------------
+
+class EventCreate(BaseModel):
     title: str = Field(min_length=1)
-    description: str = Field(min_length=5)
-    category: str = Field(min_length=1)
-    location: str = Field(min_length=1)
-    reported_by: str = Field(min_length=1)
-    status: ItemStatus
+    venue: str = Field(min_length=1)
+    capacity: int = Field(gt=0)
+    organizer: str = Field(min_length=1)
+    status: EventStatus
 
-    @field_validator(
-        "title",
-        "description",
-        "category",
-        "location",
-        "reported_by"
-    )
+    @field_validator("title", "venue", "organizer")
     @classmethod
-    def validate_not_empty(cls, value):
+    def validate_text(cls, value):
         if not value.strip():
             raise ValueError("Field cannot be empty")
         return value
 
 
-class ItemUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1)
-    description: str | None = Field(default=None, min_length=5)
-    category: str | None = Field(default=None, min_length=1)
-    location: str | None = Field(default=None, min_length=1)
-    reported_by: str | None = Field(default=None, min_length=1)
-    status: ItemStatus | None = None
+# -----------------------------
+# EVENT UPDATE
+# -----------------------------
 
-    @field_validator(
-        "title",
-        "description",
-        "category",
-        "location",
-        "reported_by"
-    )
+class EventUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1)
+    venue: str | None = Field(default=None, min_length=1)
+    capacity: int | None = Field(default=None, gt=0)
+    organizer: str | None = Field(default=None, min_length=1)
+    status: EventStatus | None = None
+
+    @field_validator("title", "venue", "organizer")
     @classmethod
-    def validate_not_empty(cls, value):
+    def validate_text(cls, value):
         if value is not None and not value.strip():
+            raise ValueError("Field cannot be empty")
+        return value
+
+
+# -----------------------------
+# RESERVATION CREATE
+# -----------------------------
+
+class ReservationCreate(BaseModel):
+    student_name: str = Field(min_length=1)
+    roll_number: str = Field(min_length=1)
+    email: EmailStr
+
+    @field_validator("student_name", "roll_number")
+    @classmethod
+    def validate_text(cls, value):
+        if not value.strip():
             raise ValueError("Field cannot be empty")
         return value
